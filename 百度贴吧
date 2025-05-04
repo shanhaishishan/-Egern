@@ -1,0 +1,20 @@
+#!name=贴吧去广告(>=iOS15)
+#!desc=去除贴吧开屏广告；推荐和吧内帖子列表的直播及广告；详情页直播/关联商品/广告；看图模式广告；首页和帖子详情页右下角悬浮广告；部分吧内的置顶/最新中间的广告/head图片广告/head直播
+#!author=app2smile
+#!homepage=https://github.com/app2smile/rules
+
+[Rule]
+# 拒绝百度贴吧广告服务器
+DOMAIN,180.76.76.200,REJECT
+IP-CIDR,180.76.76.200/32,REJECT,no-resolve
+
+[Script]
+# 处理 JSON 接口返回的广告数据（推荐、吧内帖子列表、详情页等）
+http-response ^https?:\/\/(tiebac|c\.tieba)\.baidu\.com\/(c\/f\/(frs\/(page|threadlist|generalTabList)|pb\/page|excellent\/personalized)$|tiebaads\/commonbatch|c\/s\/sync$) requires-body=1, timeout=10, script-path=https://raw.githubusercontent.com/app2smile/rules/master/js/tieba-json.js, tag=贴吧 JSON 广告移除
+
+# 处理 protobuf 协议的帖子数据（部分新版接口使用 cmd 参数）
+http-response ^https?:\/\/(tiebac|c\.tieba)\.baidu\.com\/c\/f\/(frs\/(page|threadlist|generalTabList)|pb\/page|excellent\/personalized)\?cmd requires-body=1, binary-body-mode=1, timeout=10, script-path=https://raw.githubusercontent.com/app2smile/rules/master/js/tieba-proto.js, tag=贴吧 Proto 广告移除
+
+[MITM]
+# 启用 HTTPS 解密以拦截并修改广告数据
+hostname = tiebac.baidu.com
